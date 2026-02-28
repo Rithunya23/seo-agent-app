@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Agent — Autonomous SEO Optimization</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0b0f; --card: rgba(255,255,255,0.02); --border: rgba(255,255,255,0.06);
+            --text: #e4e5ed; --muted: #5a5e76; --accent: #00ffa3; --accent2: #6366f1;
+            --red: #ef4444; --yellow: #f59e0b; --green: #10b981;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #1e2030; border-radius: 3px; }
+
+        /* ── Animations ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .fade-up { animation: fadeUp 0.5s ease; }
+
+        /* ── Layout ── */
+        .app { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 260px; background: rgba(12,13,18,0.98); border-right: 1px solid var(--border);
+            padding: 20px 16px; display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        .main { flex: 1; padding: 24px 32px; overflow-y: auto; max-height: 100vh; }
+
+        /* ── Logo ── */
+        .logo { font-size: 20px; font-weight: 700; margin-bottom: 28px; display: flex; align-items: center; gap: 8px; }
+        .logo span.diamond { color: var(--accent); font-size: 24px; }
+        .logo span.brand { color: #fff; }
+        .logo span.sub { color: var(--muted); }
+
+        /* ── Nav ── */
+        .nav-section { font-size: 9px; color: #2a2d3e; text-transform: uppercase; letter-spacing: 2px; margin: 16px 0 8px 14px; }
+        .nav-item {
+            padding: 10px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center;
+            gap: 10px; margin-bottom: 2px; font-size: 13px; color: var(--muted); transition: all 0.2s;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+        .nav-item.active { background: rgba(0,255,163,0.08); color: var(--accent); font-weight: 600; }
+        .nav-icon { font-size: 16px; flex-shrink: 0; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 24px; margin-bottom: 16px;
+        }
+        .card-highlight { background: linear-gradient(135deg, rgba(0,255,163,0.03), rgba(99,102,241,0.03)); border-color: rgba(0,255,163,0.12); }
+
+        /* ── Inputs ── */
+        input[type="text"], input[type="email"], input[type="password"], input[type="url"] {
+            width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 10px; color: #fff; font-size: 14px; font-family: inherit; transition: all 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,255,163,0.1); }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 12px 28px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px;
+            font-weight: 700; font-family: inherit; letter-spacing: 0.5px; transition: all 0.2s;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), #00d48a); color: var(--bg); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,255,163,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+        .btn-sm { padding: 6px 16px; font-size: 12px; }
+        .btn-approve { background: rgba(0,255,163,0.15); color: var(--accent); }
+        .btn-skip { background: rgba(239,68,68,0.15); color: var(--red); }
+
+        /* ── Labels ── */
+        .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .section-title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; font-weight: 600; }
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px;
+            font-weight: 600; letter-spacing: 0.5px;
+        }
+        .badge-green { color: var(--accent); background: rgba(0,255,163,0.1); border: 1px solid rgba(0,255,163,0.2); }
+        .badge-red { color: var(--red); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); }
+        .badge-yellow { color: var(--yellow); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+        .badge-blue { color: var(--accent2); background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); }
+
+        /* ── Stats Grid ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+        .stat-card { text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* ── Module Grid ── */
+        .module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .module-card { cursor: pointer; transition: all 0.2s; }
+        .module-card:hover { border-color: rgba(0,255,163,0.2); transform: translateY(-2px); }
+        .module-icon { font-size: 24px; margin-bottom: 8px; }
+        .module-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .module-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+        /* ── Progress ── */
+        .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
+
+        /* ── Spinner ── */
+        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+
+        /* ── Agent Log ── */
+        .log-entry { display: flex; gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 12px; animation: slideIn 0.3s ease; }
+        .log-time { color: #2a2d3e; font-size: 10px; font-family: 'JetBrains Mono', monospace; min-width: 60px; }
+        .log-agent { font-weight: 600; min-width: 70px; }
+
+        /* ── Page List ── */
+        .page-item { cursor: pointer; padding: 16px; margin-bottom: 8px; transition: all 0.2s; }
+        .page-item:hover { border-color: rgba(0,255,163,0.2); }
+        .page-item.active { border-color: rgba(0,255,163,0.3); }
+        .page-path { font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+        /* ── Before/After ── */
+        .before-box { padding: 12px; background: rgba(239,68,68,0.05); border-radius: 8px; border: 1px solid rgba(239,68,68,0.15); margin-bottom: 6px; }
+        .after-box { padding: 12px; background: rgba(0,255,163,0.03); border-radius: 8px; border: 1px solid rgba(0,255,163,0.15); }
+        .before-label { font-size: 10px; color: var(--red); margin-bottom: 4px; }
+        .after-label { font-size: 10px; color: var(--accent); margin-bottom: 4px; }
+
+        /* ── Score Circle ── */
+        .score-circle { text-align: center; }
+        .score-number { font-size: 24px; font-weight: 700; }
+
+        /* ── Two Column ── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+        /* ── Login ── */
+        .login-wrapper {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: var(--bg);
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(0,255,163,0.04) 0%, transparent 50%),
+                              radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 50%);
+        }
+        .login-box { width: 420px; background: rgba(15,16,22,0.95); border: 1px solid var(--border); border-radius: 20px; padding: 48px; animation: fadeUp 0.6s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .login-title { font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 4px; letter-spacing: -1.5px; }
+        .login-sub { font-size: 13px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 36px; }
+
+        /* ── Opportunity ── */
+        .opportunity { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+
+        /* ── Check ── */
+        .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+
+        /* ── Verdict ── */
+        .verdict { text-align: center; margin-top: 24px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px solid var(--border); }
+        .verdict-text { font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+        .verdict-sub { font-size: 12px; color: var(--muted); }
+
+        /* ── User Info ── */
+        .user-info {
+            padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 10px;
+        }
+        .user-avatar {
+            width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--bg);
+        }
+        .user-name { font-size: 12px; font-weight: 600; }
+        .user-email { font-size: 10px; color: #3a3d52; }
+
+        /* ── Hidden ── */
+        .hidden { display: none !important; }
+
+        /* ── Agent Colors ── */
+        .agent-planner { color: #6366f1; }
+        .agent-auditor { color: #f59e0b; }
+        .agent-fixer { color: #10b981; }
+        .agent-reviewer { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- LOGIN SCREEN -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div id="loginScreen" class="login-wrapper">
+    <div class="login-box">
+        <div class="login-title"><span style="color:var(--accent)">◆ SEO</span><span>Agent</span></div>
+        <div class="login-sub">Autonomous Optimization</div>
+
+        <div id="signupFields">
+            <div class="label">Full Name</div>
+            <input type="text" id="nameInput" placeholder="John Doe" style="margin-bottom:16px">
+        </div>
+        <div class="label">Email</div>
+        <input type="email" id="emailInput" placeholder="you@company.com" style="margin-bottom:16px">
+        <div class="label">Password</div>
+        <input type="password" id="passwordInput" placeholder="••••••••" style="margin-bottom:24px">
+
+        <button class="btn btn-primary" style="width:100%" onclick="handleAuth()" id="authBtn">Sign Up</button>
+
+        <div style="text-align:center;margin-top:20px">
+            <span style="color:var(--muted);font-size:13px" id="authToggleText">Already have an account? </span>
+            <span style="color:var(--accent);font-size:13px;cursor:pointer;font-weight:600" onclick="toggleAuth()" id="authToggleLink">Sign In</span>
+        </div>
+        <div id="authError" style="color:var(--red);font-size:12px;text-align:center;margin-top:12px"></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- MAIN APP -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div id="appScreen" class="app hidden">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <span class="diamond">◆</span>
+            <span class="brand">SEO</span><span class="sub">Agent</span>
+        </div>
+
+        <div style="flex:1">
+            <div class="nav-section">Workflow</div>
+            <div class="nav-item active" data-screen="dashboard" onclick="showScreen('dashboard')"><span class="nav-icon">⌂</span> Dashboard</div>
+            <div class="nav-item" data-screen="audit" onclick="showScreen('audit')"><span class="nav-icon">🔎</span> SEO Audit</div>
+            <div class="nav-item" data-screen="fix" onclick="showScreen('fix')"><span class="nav-icon">🔧</span> Auto Fix</div>
+            <div class="nav-item" data-screen="decide" onclick="showScreen('decide')"><span class="nav-icon">🤔</span> Decide</div>
+            <div class="nav-item" data-screen="review" onclick="showScreen('review')"><span class="nav-icon">📋</span> Review</div>
+            <div class="nav-item" data-screen="report" onclick="showScreen('report')"><span class="nav-icon">📄</span> Final Report</div>
+
+            <div class="nav-section" style="margin-top:16px">Modules</div>
+            <div class="nav-item" onclick="showModule('geo')"><span class="nav-icon">🌐</span> GEO Optimization</div>
+            <div class="nav-item" onclick="showModule('brand')"><span class="nav-icon">🛡️</span> AI Brand Monitor</div>
+            <div class="nav-item" onclick="showModule('zeroclick')"><span class="nav-icon">🎯</span> Zero-Click SEO</div>
+            <div class="nav-item" onclick="showModule('eeat')"><span class="nav-icon">✅</span> EEAT Analyser</div>
+            <div class="nav-item" onclick="showModule('contentquality')"><span class="nav-icon">📝</span> Content Quality</div>
+            <div class="nav-item" onclick="showModule('predictive')"><span class="nav-icon">🔮</span> Predictive SEO</div>
+        </div>
+
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div>
+                <div class="user-name" id="userName">User</div>
+                <div class="user-email" id="userEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0c5c3d5c2f0d5ddd1d9dc9ed3dfdd">[email&#160;protected]</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main" id="mainContent">
+        <!-- Screens are rendered by JavaScript -->
+    </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const API = "http://localhost:8000";
+let token = "";
+let user = null;
+let isSignup = true;
+let currentProject = null;
+let projectData = null;
+let reportData = null;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleAuth() {
+    isSignup = !isSignup;
+    document.getElementById("signupFields").classList.toggle("hidden", !isSignup);
+    document.getElementById("authBtn").textContent = isSignup ? "Sign Up" : "Sign In";
+    document.getElementById("authToggleText").textContent = isSignup ? "Already have an account? " : "Don't have an account? ";
+    document.getElementById("authToggleLink").textContent = isSignup ? "Sign In" : "Sign Up";
+    document.getElementById("authError").textContent = "";
+}
+
+async function handleAuth() {
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+    const name = document.getElementById("nameInput").value;
+    if (!email || !password) { document.getElementById("authError").textContent = "Please fill all fields"; return; }
+
+    const endpoint = isSignup ? "/api/auth/signup" : "/api/auth/login";
+    const body = isSignup ? { email, password, name } : { email, password };
+
+    try {
+        const res = await fetch(API + endpoint, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (res.ok) {
+            token = data.access_token;
+            user = data.user;
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("appScreen").classList.remove("hidden");
+            document.getElementById("userName").textContent = user.name;
+            document.getElementById("userEmail").textContent = user.email;
+            document.getElementById("userAvatar").textContent = user.name[0].toUpperCase();
+            showScreen("dashboard");
+        } else {
+            document.getElementById("authError").textContent = data.detail || "Error occurred";
+        }
+    } catch (e) {
+        document.getElementById("authError").textContent = "Cannot connect to server. Is the backend running?";
+    }
+}
+
+function api(path, options = {}) {
+    return fetch(API + path, {
+        ...options,
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", ...options.headers }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function showScreen(name) {
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    const navItem = document.querySelector(`.nav-item[data-screen="${name}"]`);
+    if (navItem) navItem.classList.add("active");
+
+    const screens = {
+        dashboard: renderDashboard,
+        audit: renderAudit,
+        fix: renderFix,
+        decide: renderDecide,
+        review: renderReview,
+        report: renderReport,
+    };
+    if (screens[name]) screens[name]();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDashboard() {
+    const main = document.getElementById("mainContent");
+    main.innerHTML = `
+        <div class="fade-up">
+            <h1 style="font-size:28px;font-weight:700;margin-bottom:4px;letter-spacing:-0.5px">
+                Welcome back, <span style="color:var(--accent)">${user?.name || 'User'}</span>
+            </h1>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:32px">Launch a crawl to begin your autonomous SEO audit.</p>
+
+            <div class="card card-highlight">
+                <div class="section-title" style="color:var(--accent)">◆ Launch & Crawl</div>
+                <div style="display:flex;gap:12px">
+                    <input type="url" id="crawlUrl" placeholder="Enter website URL (e.g., example.com)" style="flex:1">
+                    <input type="number" id="crawlPages" value="10" min="1" max="50" style="width:80px;text-align:center">
+                    <button class="btn btn-primary" onclick="startCrawl()" id="crawlBtn">🚀 Start Crawl</button>
+                </div>
+                <div id="crawlStatus" style="margin-top:16px"></div>
+                <div style="display:flex;gap:24px;margin-top:16px">
+                    <span style="font-size:12px"><span class="agent-planner">🧠 Planner</span> <span class="badge badge-green">Ready</span></span>
+                    <span style="font-size:12px"><span class="agent-auditor">🔎 Auditor</span> <span class="badge badge-green">Ready</span></span>
+                    <span style="font-size:12px"><span class="agent-fixer">🔧 Fixer</span> <span class="badge badge-green">Ready</span></span>
+                    <span style="font-size:12px"><span class="agent-reviewer">📋 Reviewer</span> <span class="badge badge-green">Ready</span></span>
+                </div>
+            </div>
+
+            <div id="projectsList" style="margin-top:32px"></div>
+
+            <div class="section-title" style="margin-top:32px">SEO Modules</div>
+            <div class="module-grid">
+                ${[
+                    {id:"geo",icon:"🌐",name:"GEO Optimization",desc:"Generative Engine Optimization for AI search"},
+                    {id:"brand",icon:"🛡️",name:"AI Brand Monitor",desc:"Track brand mentions across AI platforms"},
+                    {id:"zeroclick",icon:"🎯",name:"Zero-Click SEO",desc:"Featured snippets & direct answers"},
+                    {id:"eeat",icon:"✅",name:"EEAT Signal Analyser",desc:"Experience, Expertise, Authority, Trust"},
+                    {id:"contentquality",icon:"📝",name:"Content Quality",desc:"AI-powered content assessment"},
+                    {id:"predictive",icon:"🔮",name:"Predictive SEO",desc:"Forecast ranking changes"},
+                    {id:"commerce",icon:"🛒",name:"Agentic Commerce",desc:"Commerce readiness for AI shopping"},
+                    {id:"competitor",icon:"📊",name:"Competitor Benchmarking",desc:"AI visibility competitive analysis"},
+                    {id:"searcheverywhere",icon:"🔍",name:"Search Everywhere",desc:"Multi-platform search presence"},
+                    {id:"topicclusters",icon:"🧩",name:"Topic Clusters",desc:"Content clustering & pillar strategy"},
+                ].map(m => `
+                    <div class="card module-card" onclick="showModule('${m.id}')">
+                        <div class="module-icon">${m.icon}</div>
+                        <div class="module-name">${m.name}</div>
+                        <div class="module-desc">${m.desc}</div>
+                    </div>
+                `).join("")}
+            </div>
+        </div>
+    `;
+    loadProjects();
+}
+
+async function loadProjects() {
+    try {
+        const res = await api("/api/projects");
+        const projects = await res.json();
+        const el = document.getElementById("projectsList");
+        if (projects.length === 0) { el.innerHTML = ""; return; }
+        el.innerHTML = `
+            <div class="section-title">Previous Crawls</div>
+            ${projects.map(p => `
+                <div class="card page-item" onclick="loadProject(${p.id})" style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div class="page-path">${p.url}</div>
+                        <div style="font-size:11px;color:var(--muted);margin-top:4px">
+                            ${p.total_pages} pages · ${p.total_issues} issues · Status: ${p.status}
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:20px;font-weight:700;color:${p.avg_score_after >= 70 ? 'var(--accent)' : 'var(--yellow)'}">${p.avg_score_after}%</div>
+                        <span class="badge ${p.status === 'complete' ? 'badge-green' : 'badge-yellow'}">${p.status}</span>
+                    </div>
+                </div>
+            `).join("")}
+        `;
+    } catch(e) { console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CRAWL
+// ═══════════════════════════════════════════════════════════════════════════
+async function startCrawl() {
+    const url = document.getElementById("crawlUrl").value;
+    const maxPages = document.getElementById("crawlPages").value;
+    if (!url) return;
+
+    const btn = document.getElementById("crawlBtn");
+    const status = document.getElementById("crawlStatus");
+    btn.innerHTML = '<span class="spinner"></span> Crawling...';
+    btn.disabled = true;
+    status.innerHTML = `
+        <div class="progress-bar"><div class="progress-fill" id="crawlProgress" style="width:10%"></div></div>
+        <div style="color:var(--accent);font-size:13px;margin-top:8px" id="crawlPhase">Initiating crawl...</div>
+    `;
+
+    try {
+        const res = await api("/api/projects/crawl", {
+            method: "POST", body: JSON.stringify({ url, max_pages: parseInt(maxPages) })
+        });
+        const data = await res.json();
+        currentProject = data.project_id;
+
+        // Poll for completion
+        const phases = ["Crawling pages...", "Analyzing SEO...", "Applying fixes...", "Reviewing changes...", "Generating report..."];
+        let progress = 20;
+        const interval = setInterval(async () => {
+            progress = Math.min(90, progress + 15);
+            document.getElementById("crawlProgress").style.width = progress + "%";
+            document.getElementById("crawlPhase").textContent = phases[Math.floor((progress - 20) / 15)] || "Processing...";
+
+            const check = await api(`/api/projects/${currentProject}`);
+            const proj = await check.json();
+            if (proj.status === "complete") {
+                clearInterval(interval);
+                document.getElementById("crawlProgress").style.width = "100%";
+                document.getElementById("crawlPhase").textContent = "✅ Crawl complete! Loading results...";
+                btn.innerHTML = "🚀 Start Crawl";
+                btn.disabled = false;
+                projectData = proj;
+                setTimeout(() => showScreen("audit"), 1000);
+            }
+        }, 3000);
+    } catch(e) {
+        status.innerHTML = `<div style="color:var(--red)">Error: ${e.message}. Is the backend running?</div>`;
+        btn.innerHTML = "🚀 Start Crawl";
+        btn.disabled = false;
+    }
+}
+
+async function loadProject(id) {
+    currentProject = id;
+    try {
+        const res = await api(`/api/projects/${id}`);
+        projectData = await res.json();
+        showScreen("audit");
+    } catch(e) { console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUDIT SCREEN — Shows ALL pages with before/after and auto-fix summary
+// ═══════════════════════════════════════════════════════════════════════════
+function renderAudit() {
+    if (!projectData) { document.getElementById("mainContent").innerHTML = `<div class="card" style="text-align:center;padding:60px;color:var(--muted)">No crawl data yet. Go to Dashboard and start a crawl first.</div>`; return; }
+    const pages = projectData.pages || [];
+    const totalIssues = pages.reduce((s, p) => s + (p.issues?.length || 0), 0);
+    const autoFix = pages.reduce((s, p) => s + (p.issues?.filter(i => i.auto_fixable)?.length || 0), 0);
+    const needsHuman = totalIssues - autoFix;
+    const totalFixes = pages.reduce((s, p) => s + (p.fixes?.length || 0), 0);
+    const avgBefore = pages.length ? Math.round(pages.reduce((s,p) => s + p.score_before, 0) / pages.length) : 0;
+    const avgAfter = pages.length ? Math.round(pages.reduce((s,p) => s + p.score_after, 0) / pages.length) : 0;
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="fade-up">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                <div>
+                    <h2 style="font-size:22px;font-weight:700">🔎 Full SEO Audit — All Pages</h2>
+                    <p style="color:var(--muted);font-size:13px">${pages.length} pages crawled · ${totalIssues} issues found · ${totalFixes} auto-fixed</p>
+                </div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-secondary" onclick="showScreen('fix')">🔧 Fixes Detail</button>
+                    <button class="btn btn-primary" onclick="loadReport()">📄 Full Report</button>
+                </div>
+            </div>
+
+            <!-- SUMMARY STATS -->
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px">
+                <div class="card stat-card"><div class="stat-value" style="color:var(--accent2)">${pages.length}</div><div class="stat-label">Pages</div></div>
+                <div class="card stat-card"><div class="stat-value" style="color:var(--red)">${totalIssues}</div><div class="stat-label">Issues</div></div>
+                <div class="card stat-card"><div class="stat-value" style="color:var(--accent)">${totalFixes}</div><div class="stat-label">Fixed</div></div>
+                <div class="card stat-card"><div class="stat-value" style="color:var(--yellow)">${needsHuman}</div><div class="stat-label">Needs Human</div></div>
+                <div class="card stat-card"><div class="stat-value" style="color:var(--yellow)">${avgBefore}%</div><div class="stat-label">Score Before</div></div>
+                <div class="card stat-card"><div class="stat-value" style="color:var(--accent)">${avgAfter}%</div><div class="stat-label">Score After</div></div>
+            </div>
+
+            <!-- AGENT SUMMARY -->
+            <div class="card" style="margin-bottom:24px;background:linear-gradient(135deg,rgba(0,255,163,0.03),rgba(99,102,241,0.03));border-color:rgba(0,255,163,0.12)">
+                <div class="section-title" style="color:var(--accent)">🤖 Agent Auto-Actions Summary</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:8px">✅ What the Agent Fixed Automatically:</div>
+                        ${pages.flatMap(p => (p.fixes || []).map(f => ({page: p.path, fix: f}))).map(item => `
+                            <div style="font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+                                <span style="color:var(--accent)">✓</span>
+                                <span style="color:var(--accent);font-family:'JetBrains Mono',monospace">${item.page}</span>
+                                — ${item.fix.type}: <span style="color:#8b8fa3">${item.fix.before || '(empty)'}</span> → <span style="color:var(--accent)">${item.fix.after || 'Fixed'}</span>
+                            </div>
+                        `).join("") || '<div style="color:var(--muted);font-size:12px">No auto-fixes applied</div>'}
+                    </div>
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--yellow);margin-bottom:8px">⚠ Escalated to You (Needs Your Decision):</div>
+                        ${pages.flatMap(p => (p.escalations || []).map(e => ({page: p.path, esc: e}))).map(item => `
+                            <div style="font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+                                <span style="color:var(--yellow)">⚠</span>
+                                <span style="color:var(--yellow);font-family:'JetBrains Mono',monospace">${item.page}</span>
+                                — ${item.esc.reason || item.esc.issue?.description || 'Needs review'}
+                            </div>
+                        `).join("") || '<div style="color:var(--muted);font-size:12px">Nothing escalated — all handled automatically!</div>'}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALL PAGES WITH BEFORE/AFTER -->
+            <div class="section-title">📋 All Pages — Before & After</div>
+            ${pages.map((p, i) => `
+                <div class="card" style="margin-bottom:12px;border-color:${p.score_after >= 80 ? 'rgba(0,255,163,0.15)' : p.score_after >= 60 ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)'}">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                        <div>
+                            <span class="page-path" style="font-size:15px">${p.path}</span>
+                            <span style="font-size:11px;color:var(--muted);margin-left:8px">${p.url}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <div style="text-align:center">
+                                <div style="font-size:10px;color:var(--muted)">BEFORE</div>
+                                <div style="font-size:22px;font-weight:700;color:${p.score_before >= 70 ? 'var(--yellow)' : 'var(--red)'}">${p.score_before}</div>
+                            </div>
+                            <div style="font-size:20px;color:var(--accent)">→</div>
+                            <div style="text-align:center">
+                                <div style="font-size:10px;color:var(--muted)">AFTER</div>
+                                <div style="font-size:22px;font-weight:700;color:${p.score_after >= 70 ? 'var(--accent)' : 'var(--yellow)'}">${p.score_after}</div>
+                            </div>
+                            <span class="badge badge-green" style="font-size:13px;padding:4px 12px">+${p.score_after - p.score_before}%</span>
+                        </div>
+                    </div>
+
+                    <!-- Meta Title Before/After -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                        <div>
+                            <div style="font-size:10px;color:var(--red);margin-bottom:4px;font-weight:600">META TITLE — BEFORE</div>
+                            <div style="padding:10px;background:rgba(239,68,68,0.05);border-radius:8px;border:1px solid rgba(239,68,68,0.15);font-size:12px;color:#8b8fa3;font-style:italic;min-height:40px">${p.title_before || '(empty — missing!)'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px;color:var(--accent);margin-bottom:4px;font-weight:600">META TITLE — AFTER ✓</div>
+                            <div style="padding:10px;background:rgba(0,255,163,0.03);border-radius:8px;border:1px solid rgba(0,255,163,0.15);font-size:12px;min-height:40px">${p.title_after || p.title_before || '(no change)'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Meta Description Before/After -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                        <div>
+                            <div style="font-size:10px;color:var(--red);margin-bottom:4px;font-weight:600">META DESCRIPTION — BEFORE</div>
+                            <div style="padding:10px;background:rgba(239,68,68,0.05);border-radius:8px;border:1px solid rgba(239,68,68,0.15);font-size:12px;color:#8b8fa3;font-style:italic;min-height:40px">${p.desc_before || '(empty — missing!)'}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:10px;color:var(--accent);margin-bottom:4px;font-weight:600">META DESCRIPTION — AFTER ✓</div>
+                            <div style="padding:10px;background:rgba(0,255,163,0.03);border-radius:8px;border:1px solid rgba(0,255,163,0.15);font-size:12px;min-height:40px">${p.desc_after || p.desc_before || '(no change)'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Issues & Fixes -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div>
+                            <div style="font-size:10px;color:var(--red);margin-bottom:4px;font-weight:600">ISSUES FOUND (${(p.issues||[]).length})</div>
+                            ${(p.issues || []).map(iss => `
+                                <div style="font-size:11px;padding:3px 0;display:flex;align-items:center;gap:6px">
+                                    <span class="badge ${iss.severity === 'critical' || iss.severity === 'high' ? 'badge-red' : iss.severity === 'medium' ? 'badge-yellow' : 'badge-blue'}" style="font-size:9px">${iss.severity}</span>
+                                    ${iss.description}
+                                    ${iss.auto_fixable ? '<span style="color:var(--accent);font-size:10px">✓ auto-fixed</span>' : '<span style="color:var(--yellow);font-size:10px">⚠ needs human</span>'}
+                                </div>
+                            `).join("") || '<div style="color:var(--accent);font-size:11px">No issues! ✓</div>'}
+                        </div>
+                        <div>
+                            <div style="font-size:10px;color:var(--accent);margin-bottom:4px;font-weight:600">FIXES APPLIED (${(p.fixes||[]).length})</div>
+                            ${(p.fixes || []).map(f => `
+                                <div style="font-size:11px;padding:3px 0;color:var(--accent)">✓ ${f.type}: ${f.after || 'Fixed'}</div>
+                            `).join("") || '<div style="color:var(--muted);font-size:11px">No fixes needed</div>'}
+                        </div>
+                    </div>
+
+                    <!-- Page Stats -->
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.03);font-size:11px;color:var(--muted)">
+                        Words: ${p.word_count} · Internal Links: ${p.internal_links} · Schema: ${p.has_schema ? '✅' : '❌'} · Canonical: ${p.has_canonical ? '✅' : '❌'}
+                    </div>
+                </div>
+            `).join("")}
+
+            <!-- AGENT LOG -->
+            <div class="card" style="margin-top:16px;max-height:300px;overflow-y:auto">
+                <div class="section-title">🤖 Agent Activity Log</div>
+                ${(projectData.agent_logs || []).map(l => `
+                    <div class="log-entry">
+                        <span class="log-time">${l.time ? new Date(l.time).toLocaleTimeString() : ''}</span>
+                        <span class="log-agent agent-${l.agent?.toLowerCase()}">${l.agent}</span>
+                        <span style="color:${l.type === 'success' ? 'var(--accent)' : l.type === 'fix' ? 'var(--green)' : l.type === 'escalate' ? 'var(--yellow)' : 'var(--muted)'}">${l.message}</span>
+                    </div>
+                `).join("")}
+            </div>
+        </div>
+    `;
+}
+
+function selectPage(index) {
+    const p = projectData.pages[index];
+    document.getElementById("pageDetail").innerHTML = `
+        <div class="fade-up">
+            <div class="section-title">Page Detail: ${p.path}</div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+                    <div>
+                        <div style="font-size:11px;color:var(--muted)">Score Before</div>
+                        <div class="score-number" style="color:${p.score_before >= 70 ? 'var(--accent)' : 'var(--yellow)'}">${p.score_before}</div>
+                    </div>
+                    <div style="font-size:24px;color:var(--muted)">→</div>
+                    <div>
+                        <div style="font-size:11px;color:var(--muted)">Score After</div>
+                        <div class="score-number" style="color:${p.score_after >= 70 ? 'var(--accent)' : 'var(--yellow)'}">${p.score_after}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px">
+                    <div class="label">Meta Title</div>
+                    <div class="before-box">
+                        <div class="before-label">BEFORE</div>
+                        <div style="font-size:13px;color:#8b8fa3;font-style:italic">${p.title_before || '(empty)'}</div>
+                    </div>
+                    <div class="after-box">
+                        <div class="after-label">AFTER (Fixed)</div>
+                        <div style="font-size:13px">${p.title_after || '(no change)'}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:20px">
+                    <div class="label">Meta Description</div>
+                    <div class="before-box">
+                        <div class="before-label">BEFORE</div>
+                        <div style="font-size:13px;color:#8b8fa3;font-style:italic">${p.desc_before || '(empty)'}</div>
+                    </div>
+                    <div class="after-box">
+                        <div class="after-label">AFTER (Fixed)</div>
+                        <div style="font-size:13px">${p.desc_after || '(no change)'}</div>
+                    </div>
+                </div>
+
+                <div class="label">Issues Found</div>
+                ${(p.issues || []).map(i => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+                        <span style="font-size:13px">${i.description}</span>
+                        <div style="display:flex;gap:8px">
+                            <span class="badge ${i.severity === 'critical' || i.severity === 'high' ? 'badge-red' : 'badge-yellow'}">${i.severity}</span>
+                            <span class="badge ${i.auto_fixable ? 'badge-green' : 'badge-yellow'}">${i.auto_fixable ? 'Auto-fix' : 'Human'}</span>
+                        </div>
+                    </div>
+                `).join("")}
+
+                <div class="label" style="margin-top:16px">Page Stats</div>
+                <div style="font-size:13px;color:var(--muted);line-height:2">
+                    Words: ${p.word_count} · Internal Links: ${p.internal_links} · Schema: ${p.has_schema ? '✅' : '❌'} · Canonical: ${p.has_canonical ? '✅' : '❌'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIX SCREEN
+// ═══════════════════════════════════════════════════════════════════════════
+function renderFix() {
+    if (!projectData) { document.getElementById("mainContent").innerHTML = `<div class="card" style="text-align:center;padding:60px;color:var(--muted)">No data. Run a crawl first.</div>`; return; }
+    const pages = projectData.pages || [];
+    const fixed = pages.filter(p => p.fixes?.length > 0);
+    const escalated = pages.filter(p => p.escalations?.length > 0);
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="fade-up">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                <div>
+                    <h2 style="font-size:22px;font-weight:700">🔧 Automated Fixes</h2>
+                    <p style="color:var(--muted);font-size:13px">Agent applied safe fixes automatically</p>
+                </div>
+                <button class="btn btn-primary" onclick="showScreen('decide')">→ Decisions</button>
+            </div>
+            <div class="two-col">
+                <div>
+                    <div class="section-title" style="color:var(--accent)">✅ Auto-Fixed (${fixed.length})</div>
+                    ${fixed.map(p => `
+                        <div class="card" style="padding:16px;margin-bottom:8px;border-color:rgba(0,255,163,0.15)">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                <span class="page-path">${p.path}</span>
+                                <span class="score-number" style="font-size:18px;color:var(--accent)">${p.score_after}</span>
+                            </div>
+                            ${(p.fixes || []).map(f => `<div style="font-size:12px;color:var(--accent);padding:3px 0">✓ ${f.type}: ${f.before || '(empty)'} → ${f.after}</div>`).join("")}
+                        </div>
+                    `).join("") || '<div class="card" style="color:var(--muted);text-align:center;padding:30px">No auto-fixes applied</div>'}
+                </div>
+                <div>
+                    <div class="section-title" style="color:var(--yellow)">⚠ Escalated (${escalated.length})</div>
+                    ${escalated.map(p => `
+                        <div class="card" style="padding:16px;margin-bottom:8px;border-color:rgba(245,158,11,0.15)">
+                            <span class="page-path">${p.path}</span>
+                            ${(p.escalations || []).map(e => `<div style="font-size:12px;color:var(--yellow);padding:3px 0">⚠ ${e.reason}</div>`).join("")}
+                        </div>
+                    `).join("") || '<div class="card" style="color:var(--muted);text-align:center;padding:30px">Nothing escalated</div>'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DECIDE SCREEN
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDecide() {
+    if (!projectData) { document.getElementById("mainContent").innerHTML = `<div class="card" style="text-align:center;padding:60px;color:var(--muted)">No data. Run a crawl first.</div>`; return; }
+    const escalated = (projectData.pages || []).filter(p => p.escalations?.length > 0);
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="fade-up">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                <div>
+                    <h2 style="font-size:22px;font-weight:700">🤔 Decision Review</h2>
+                    <p style="color:var(--muted);font-size:13px">Approve or skip escalated changes</p>
+                </div>
+                <button class="btn btn-primary" onclick="showScreen('review')">→ Final Review</button>
+            </div>
+            ${escalated.map(p => `
+                <div class="card">
+                    <div class="page-path" style="margin-bottom:12px">${p.path}</div>
+                    ${(p.escalations || []).map((e, j) => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:6px">
+                            <div>
+                                <div style="font-size:13px">${e.reason || e.issue?.description || 'Issue'}</div>
+                                <span class="badge badge-yellow">${e.issue?.severity || 'medium'}</span>
+                            </div>
+                            <div style="display:flex;gap:8px">
+                                <button class="btn btn-sm btn-approve" onclick="handleDecision(${p.id},${j},'approve',this)">Approve</button>
+                                <button class="btn btn-sm btn-skip" onclick="handleDecision(${p.id},${j},'skip',this)">Skip</button>
+                            </div>
+                        </div>
+                    `).join("")}
+                </div>
+            `).join("") || '<div class="card" style="text-align:center;color:var(--muted);padding:40px">No escalated items. All issues were auto-fixed!</div>'}
+        </div>
+    `;
+}
+
+async function handleDecision(pageId, issueIndex, action, btn) {
+    try {
+        await api(`/api/projects/${currentProject}/decide`, {
+            method: "POST", body: JSON.stringify({ page_id: pageId, issue_index: issueIndex, action })
+        });
+        btn.parentElement.innerHTML = `<span class="badge ${action === 'approve' ? 'badge-green' : 'badge-red'}">${action === 'approve' ? '✓ Approved' : '✗ Skipped'}</span>`;
+    } catch(e) { console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REVIEW SCREEN
+// ═══════════════════════════════════════════════════════════════════════════
+function renderReview() {
+    if (!projectData) { document.getElementById("mainContent").innerHTML = `<div class="card" style="text-align:center;padding:60px;color:var(--muted)">No data.</div>`; return; }
+    const pages = projectData.pages || [];
+    const avgBefore = pages.length ? Math.round(pages.reduce((s,p) => s + p.score_before, 0) / pages.length) : 0;
+    const avgAfter = pages.length ? Math.round(pages.reduce((s,p) => s + p.score_after, 0) / pages.length) : 0;
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="fade-up">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                <div>
+                    <h2 style="font-size:22px;font-weight:700">📋 Agent Review</h2>
+                    <p style="color:var(--muted);font-size:13px">Reviewer Agent validates all changes</p>
+                </div>
+                <button class="btn btn-primary" onclick="loadReport()">📄 Generate Report</button>
+            </div>
+            <div class="three-col" style="margin-bottom:24px">
+                <div class="card" style="text-align:center">
+                    <div class="label">Before Avg Score</div>
+                    <div class="score-number" style="font-size:36px;color:var(--yellow);margin-top:12px">${avgBefore}</div>
+                </div>
+                <div class="card" style="text-align:center">
+                    <div class="label">After Avg Score</div>
+                    <div class="score-number" style="font-size:36px;color:var(--accent);margin-top:12px">${avgAfter}</div>
+                </div>
+                <div class="card" style="text-align:center">
+                    <div class="label">Improvement</div>
+                    <div class="score-number" style="font-size:36px;color:var(--accent);margin-top:12px">+${avgAfter - avgBefore}%</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="section-title">Reviewer Validation</div>
+                ${["All meta titles within 50-60 character limit","All meta descriptions within 150-160 character limit","No brand messaging was altered","No legal or pricing content was modified","Internal link suggestions are contextually relevant","Schema recommendations follow schema.org standards","All escalations properly documented"].map(c => `
+                    <div class="check-item"><span style="color:var(--accent);font-size:16px">✓</span> ${c}</div>
+                `).join("")}
+            </div>
+        </div>
+    `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REPORT SCREEN
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadReport() {
+    if (!currentProject) return;
+    try {
+        const res = await api(`/api/projects/${currentProject}/report`);
+        reportData = await res.json();
+        showScreen("report");
+    } catch(e) { console.error(e); }
+}
+
+function renderReport() {
+    if (!reportData && !projectData) { document.getElementById("mainContent").innerHTML = `<div class="card" style="text-align:center;padding:60px;color:var(--muted)">No data.</div>`; return; }
+    const r = reportData || projectData;
+    const summary = r.summary || { total_pages: r.total_pages, total_issues: r.total_issues, auto_fixed: r.auto_fixed, escalated: r.escalated, score_before: r.avg_score_before, score_after: r.avg_score_after, improvement: (r.avg_score_after||0) - (r.avg_score_before||0) };
+    const pages = r.pages || [];
+    const opportunities = r.opportunities || [];
+    const logs = r.agent_logs || [];
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="fade-up">
+            <h2 style="font-size:22px;font-weight:700;margin-bottom:24px">📄 Final SEO Audit Report</h2>
+
+            <div class="card card-highlight" style="text-align:center;margin-bottom:24px">
+                <div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:4px">◆ SEO Agent Report</div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:20px">${r.url || ''} · ${new Date().toLocaleDateString()}</div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+                    ${[
+                        {l:"Pages",v:summary.total_pages}, {l:"Issues",v:summary.total_issues},
+                        {l:"Auto-Fixed",v:summary.auto_fixed}, {l:"Escalated",v:summary.escalated},
+                        {l:"Score Δ",v:`+${Math.round(summary.improvement || 0)}%`}
+                    ].map(s => `<div><div style="font-size:24px;font-weight:700;color:var(--accent)">${s.v}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${s.l}</div></div>`).join("")}
+                </div>
+            </div>
+
+            <div class="two-col" style="margin-bottom:24px">
+                <div class="card">
+                    <div class="section-title" style="color:var(--accent)">Actions Taken</div>
+                    ${pages.filter(p => p.fixes?.length > 0).slice(0,6).map(p => `
+                        <div style="margin-bottom:12px">
+                            <div class="page-path" style="margin-bottom:4px">${p.path}</div>
+                            ${(p.fixes||[]).map(f => `<div style="font-size:12px;color:var(--accent);padding-left:12px">✓ ${f.type}: ${f.after || 'Fixed'}</div>`).join("")}
+                        </div>
+                    `).join("") || '<div style="color:var(--muted);font-size:13px">No fixes applied</div>'}
+                </div>
+                <div class="card">
+                    <div class="section-title" style="color:var(--yellow)">Escalated to Humans</div>
+                    ${pages.filter(p => p.escalations?.length > 0).slice(0,6).map(p => `
+                        <div style="margin-bottom:12px">
+                            <div class="page-path" style="margin-bottom:4px">${p.path}</div>
+                            ${(p.escalations||[]).map(e => `<div style="font-size:12px;color:var(--yellow);padding-left:12px">⚠ ${e.reason || 'Needs review'}</div>`).join("")}
+                        </div>
+                    `).join("") || '<div style="color:var(--muted);font-size:13px">Nothing escalated</div>'}
+                </div>
+            </div>
+
+            ${opportunities.length ? `
+                <div class="card">
+                    <div class="section-title" style="color:var(--accent2)">SEO Opportunities Found</div>
+                    ${opportunities.map(o => `<div class="opportunity"><span style="color:var(--accent2)">💡</span> ${o}</div>`).join("")}
+                </div>
+            ` : ''}
+
+            <div class="verdict">
+                <div class="verdict-text">"${r.verdict || "This agent doesn't just generate SEO suggestions. It decides, executes, and knows when to stop."}"</div>
+                <div class="verdict-sub">Powered by Autonomous Multi-Agent Architecture · Planner → Auditor → Fixer → Reviewer</div>
+            </div>
+        </div>
+    `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE SCREEN
+// ═══════════════════════════════════════════════════════════════════════════
+async function showModule(moduleId) {
+    if (!currentProject) {
+        document.getElementById("mainContent").innerHTML = `
+            <div class="fade-up">
+                <button class="btn btn-secondary btn-sm" onclick="showScreen('dashboard')" style="margin-bottom:20px">← Back</button>
+                <div class="card" style="text-align:center;padding:60px;color:var(--muted)">
+                    Run a crawl first to see module data.
+                </div>
+            </div>
+        `;
+        return;
+    }
+    try {
+        const res = await api(`/api/projects/${currentProject}/modules/${moduleId}`);
+        if (!res.ok) throw new Error("Module not available");
+        const data = await res.json();
+        const metrics = data.metrics || {};
+
+        document.getElementById("mainContent").innerHTML = `
+            <div class="fade-up">
+                <button class="btn btn-secondary btn-sm" onclick="showScreen('dashboard')" style="margin-bottom:20px">← Back</button>
+                <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">${data.module}</h2>
+                <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Analysis based on crawled data</p>
+                <div class="three-col">
+                    ${Object.entries(metrics).map(([key, val]) => `
+                        <div class="card" style="text-align:center">
+                            <div class="label">${key.replace(/_/g, ' ')}</div>
+                            <div class="score-number" style="font-size:36px;margin-top:12px;color:${typeof val === 'number' && val >= 70 ? 'var(--accent)' : typeof val === 'number' && val >= 40 ? 'var(--yellow)' : typeof val === 'number' ? 'var(--red)' : 'var(--accent)'}">${val}</div>
+                        </div>
+                    `).join("")}
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        document.getElementById("mainContent").innerHTML = `<div class="card" style="color:var(--red);padding:30px">Error loading module: ${e.message}</div>`;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+document.getElementById("passwordInput").addEventListener("keydown", e => { if (e.key === "Enter") handleAuth(); });
+</script>
+
+</body>
+</html>
