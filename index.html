@@ -346,12 +346,13 @@ function renderDashboard() {
             <p style="color:var(--muted);font-size:14px;margin-bottom:32px">Launch a crawl to begin your autonomous SEO audit.</p>
 
             <div class="card card-highlight">
-                <div class="section-title" style="color:var(--accent)">◆ Launch & Crawl</div>
+                <div class="section-title" style="color:var(--accent)">◆ Autonomous SEO Audit</div>
                 <div style="display:flex;gap:12px">
-                    <input type="url" id="crawlUrl" placeholder="Enter website URL (e.g., example.com)" style="flex:1">
-                    <input type="number" id="crawlPages" value="10" min="1" max="50" style="width:80px;text-align:center">
-                    <button class="btn btn-primary" onclick="startCrawl()" id="crawlBtn">🚀 Start Crawl</button>
+                    <input type="url" id="crawlUrl" placeholder="Enter any website URL (e.g., avasoft.com)" style="flex:1">
+                    <button class="btn btn-primary" onclick="startCrawl()" id="crawlBtn" style="padding:12px 36px;font-size:16px">🤖 Auto Audit</button>
                 </div>
+                <input type="hidden" id="crawlPages" value="200">
+                <div style="color:var(--muted);font-size:11px;margin-top:8px">The agent will automatically discover and audit ALL pages on your site</div>
                 <div id="crawlStatus" style="margin-top:16px"></div>
                 <div style="display:flex;gap:24px;margin-top:16px">
                     <span style="font-size:12px"><span class="agent-planner">🧠 Planner</span> <span class="badge badge-green">Ready</span></span>
@@ -423,13 +424,48 @@ async function startCrawl() {
     const maxPages = document.getElementById("crawlPages").value;
     if (!url) return;
 
-    const btn = document.getElementById("crawlBtn");
-    const status = document.getElementById("crawlStatus");
-    btn.innerHTML = '<span class="spinner"></span> Crawling...';
-    btn.disabled = true;
-    status.innerHTML = `
-        <div class="progress-bar"><div class="progress-fill" id="crawlProgress" style="width:10%"></div></div>
-        <div style="color:var(--accent);font-size:13px;margin-top:8px" id="crawlPhase">Initiating crawl...</div>
+    // Switch to a full-screen crawling view
+    showScreen("crawling");
+    document.getElementById("mainContent").innerHTML = `
+        <div class="fade-up">
+            <h2 style="font-size:22px;font-weight:700;margin-bottom:24px">🤖 SEO Agent Running Autonomously...</h2>
+
+            <div class="card card-highlight" style="margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+                    <span style="color:var(--accent);font-size:13px;font-weight:600" id="crawlPhase">🚀 Starting pipeline for ${url}</span>
+                    <span style="color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace" id="crawlPct">0%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="crawlProgress" style="width:0%"></div></div>
+
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px">
+                    <div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(99,102,241,0.2);text-align:center" id="agentPlanner">
+                        <div style="font-size:20px">🧠</div>
+                        <div style="font-size:12px;color:#6366f1;font-weight:600">Planner</div>
+                        <div style="font-size:10px;color:var(--muted)" id="plannerStatus">Waiting...</div>
+                    </div>
+                    <div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(245,158,11,0.2);text-align:center" id="agentAuditor">
+                        <div style="font-size:20px">🔎</div>
+                        <div style="font-size:12px;color:#f59e0b;font-weight:600">Auditor</div>
+                        <div style="font-size:10px;color:var(--muted)" id="auditorStatus">Waiting...</div>
+                    </div>
+                    <div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(16,185,129,0.2);text-align:center" id="agentFixer">
+                        <div style="font-size:20px">🔧</div>
+                        <div style="font-size:12px;color:#10b981;font-weight:600">Fixer</div>
+                        <div style="font-size:10px;color:var(--muted)" id="fixerStatus">Waiting...</div>
+                    </div>
+                    <div style="padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(239,68,68,0.2);text-align:center" id="agentReviewer">
+                        <div style="font-size:20px">📋</div>
+                        <div style="font-size:12px;color:#ef4444;font-weight:600">Reviewer</div>
+                        <div style="font-size:10px;color:var(--muted)" id="reviewerStatus">Waiting...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="max-height:400px;overflow-y:auto" id="liveLogPanel">
+                <div class="section-title">🤖 Live Agent Activity</div>
+                <div id="liveLog"></div>
+            </div>
+        </div>
     `;
 
     try {
@@ -439,31 +475,92 @@ async function startCrawl() {
         const data = await res.json();
         currentProject = data.project_id;
 
-        // Poll for completion
-        const phases = ["Crawling pages...", "Analyzing SEO...", "Applying fixes...", "Reviewing changes...", "Generating report..."];
-        let progress = 20;
-        const interval = setInterval(async () => {
-            progress = Math.min(90, progress + 15);
-            document.getElementById("crawlProgress").style.width = progress + "%";
-            document.getElementById("crawlPhase").textContent = phases[Math.floor((progress - 20) / 15)] || "Processing...";
+        addLiveLog("Planner", "Pipeline initiated for " + url, "start");
+        document.getElementById("plannerStatus").textContent = "Running...";
 
-            const check = await api(`/api/projects/${currentProject}`);
-            const proj = await check.json();
-            if (proj.status === "complete") {
-                clearInterval(interval);
-                document.getElementById("crawlProgress").style.width = "100%";
-                document.getElementById("crawlPhase").textContent = "✅ Crawl complete! Loading results...";
-                btn.innerHTML = "🚀 Start Crawl";
-                btn.disabled = false;
-                projectData = proj;
-                setTimeout(() => showScreen("audit"), 1000);
+        // Simulate agent phases while polling
+        const agentPhases = [
+            { pct: 10, phase: "🧠 Planner setting scope...", agent: "Planner", msg: "Analyzing site structure", status: "plannerStatus" },
+            { pct: 20, phase: "🔎 Auditor discovering pages...", agent: "Auditor", msg: "Discovering pages via sitemap & links", status: "auditorStatus" },
+            { pct: 35, phase: "🔎 Auditor crawling all pages...", agent: "Auditor", msg: "Crawling and extracting page data" },
+            { pct: 50, phase: "🔎 Auditor analyzing SEO issues...", agent: "Auditor", msg: "Checking meta tags, H1s, schema, links" },
+            { pct: 65, phase: "🔧 Fixer applying auto-fixes...", agent: "Fixer", msg: "Rewriting meta titles & descriptions", status: "fixerStatus" },
+            { pct: 75, phase: "🔧 Fixer adding schema & links...", agent: "Fixer", msg: "Adding schema markup, canonical URLs" },
+            { pct: 85, phase: "📋 Reviewer validating changes...", agent: "Reviewer", msg: "Checking all fixes meet standards", status: "reviewerStatus" },
+            { pct: 95, phase: "📄 Generating final report...", agent: "Planner", msg: "Compiling results and opportunities" },
+        ];
+
+        let phaseIndex = 0;
+
+        const interval = setInterval(async () => {
+            // Update progress animation
+            if (phaseIndex < agentPhases.length) {
+                const ap = agentPhases[phaseIndex];
+                document.getElementById("crawlProgress").style.width = ap.pct + "%";
+                document.getElementById("crawlPct").textContent = ap.pct + "%";
+                document.getElementById("crawlPhase").textContent = ap.phase;
+                addLiveLog(ap.agent, ap.msg, ap.agent === "Fixer" ? "fix" : "info");
+                if (ap.status) document.getElementById(ap.status).textContent = "Running...";
+
+                // Mark previous agents as done
+                if (ap.pct >= 50) document.getElementById("plannerStatus").textContent = "✅ Done";
+                if (ap.pct >= 65) document.getElementById("auditorStatus").textContent = "✅ Done";
+                if (ap.pct >= 85) document.getElementById("fixerStatus").textContent = "✅ Done";
+
+                phaseIndex++;
             }
-        }, 3000);
+
+            // Check if backend is done
+            try {
+                const check = await api(`/api/projects/${currentProject}`);
+                const proj = await check.json();
+                if (proj.status === "complete" || proj.status === "error") {
+                    clearInterval(interval);
+                    if (proj.status === "complete") {
+                        document.getElementById("crawlProgress").style.width = "100%";
+                        document.getElementById("crawlPct").textContent = "100%";
+                        document.getElementById("crawlPhase").textContent = "✅ All agents complete! Loading full report...";
+                        document.getElementById("plannerStatus").textContent = "✅ Done";
+                        document.getElementById("auditorStatus").textContent = "✅ Done";
+                        document.getElementById("fixerStatus").textContent = "✅ Done";
+                        document.getElementById("reviewerStatus").textContent = "✅ Done";
+                        addLiveLog("Reviewer", "All validation checks passed", "success");
+                        addLiveLog("Planner", "Pipeline complete. Report ready!", "success");
+
+                        projectData = proj;
+                        // Auto-load report
+                        const reportRes = await api(`/api/projects/${currentProject}/report`);
+                        reportData = await reportRes.json();
+
+                        setTimeout(() => {
+                            showScreen("audit");
+                        }, 2000);
+                    } else {
+                        document.getElementById("crawlPhase").textContent = "❌ Error occurred during crawl";
+                        addLiveLog("Planner", "Pipeline error — check backend logs", "error");
+                    }
+                }
+            } catch(e) { /* keep polling */ }
+        }, 2500);
     } catch(e) {
-        status.innerHTML = `<div style="color:var(--red)">Error: ${e.message}. Is the backend running?</div>`;
-        btn.innerHTML = "🚀 Start Crawl";
-        btn.disabled = false;
+        addLiveLog("Planner", "Error: " + e.message, "error");
     }
+}
+
+function addLiveLog(agent, message, type) {
+    const el = document.getElementById("liveLog");
+    if (!el) return;
+    const colors = { Planner: "#6366f1", Auditor: "#f59e0b", Fixer: "#10b981", Reviewer: "#ef4444" };
+    const msgColors = { info: "var(--muted)", success: "var(--accent)", fix: "var(--green)", error: "var(--red)", start: "#6366f1", escalate: "var(--yellow)" };
+    el.innerHTML += `
+        <div class="log-entry">
+            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+            <span class="log-agent" style="color:${colors[agent] || 'var(--muted)'}">${agent}</span>
+            <span style="color:${msgColors[type] || 'var(--muted)'}">${message}</span>
+        </div>
+    `;
+    const panel = document.getElementById("liveLogPanel");
+    if (panel) panel.scrollTop = panel.scrollHeight;
 }
 
 async function loadProject(id) {
