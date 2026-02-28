@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+venv
+.git
+*.db
+*.sqlite
+patch_crawler.py
+patch_v2.py
+setup.bat
+start.bat
