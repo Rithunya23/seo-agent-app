@@ -864,6 +864,17 @@ class ModuleAnalyzer:
 app = FastAPI(title="SEO Agent API", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
+from fastapi.responses import FileResponse, HTMLResponse
+from pathlib import Path
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend():
+    html_path = Path(__file__).parent / "index.html"
+    if html_path.exists():
+        return FileResponse(html_path)
+    return HTMLResponse("index.html not found")
+
+
 # ── Auth Routes ──────────────────────────────────────────────────────────────
 @app.post("/api/auth/signup")
 def signup(data: UserCreate, db: Session = Depends(get_db)):
