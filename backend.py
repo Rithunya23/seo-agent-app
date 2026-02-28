@@ -307,8 +307,8 @@ class Crawler:
         logger.info(f"Sitemap: found {len(sitemap_urls)} URLs")
 
         # PHASE 2: Try aiohttp first (fast)
-        conn = aiohttp.TCPConnector(limit=10, ssl=False)
-        timeout = aiohttp.ClientTimeout(total=15, connect=10)
+        conn = aiohttp.TCPConnector(limit=30, ssl=False)
+        timeout = aiohttp.ClientTimeout(total=8, connect=5)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=self.HEADERS) as s:
             await self._crawl_aiohttp(s, self.base_url)
 
@@ -392,11 +392,11 @@ class Crawler:
                             continue
 
                         # Wait for JS to fully render
-                        await page.wait_for_timeout(3000)
+                        await page.wait_for_timeout(500)
 
                         # Scroll down to trigger lazy-loaded content
                         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                        await page.wait_for_timeout(1000)
+                        await page.wait_for_timeout(300)
 
                         html = await page.content()
                         soup = BeautifulSoup(html, "lxml")
