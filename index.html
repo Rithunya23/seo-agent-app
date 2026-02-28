@@ -739,9 +739,20 @@ async function startCrawl() {
                     const loader = document.getElementById("aiLoader");
                     if (loader) loader.innerHTML = '<div style="font-size:48px;margin-bottom:12px;animation:scaleIn 0.5s cubic-bezier(0.16,1,0.3,1)">🎉</div><div style="font-size:18px;font-weight:800;color:var(--lime)">Analysis Complete!</div><div style="font-size:12px;color:var(--muted)">Redirecting to results...</div>';
                     addLiveLog("Planner", "Pipeline complete!", "success");
-                    projectData = proj;
+                    // Re-fetch FULL project data with all fixes
+                    try {
+                        const fullRes = await api("/api/projects/" + currentProject);
+                        projectData = await fullRes.json();
+                    } catch(e) { projectData = proj; }
                     try { const rr = await api("/api/projects/" + currentProject + "/report"); reportData = await rr.json(); } catch(e) {}
-                    setTimeout(() => { showScreen("audit"); }, 1200);
+                    // Wait a moment then re-fetch again to ensure all fixes are included
+                    setTimeout(async () => {
+                        try {
+                            const finalRes = await api("/api/projects/" + currentProject);
+                            projectData = await finalRes.json();
+                        } catch(e) {}
+                        showScreen("audit");
+                    }, 1500);
                 } else if (s === "error") {
                     clearInterval(interval);
                     clearInterval(msgInterval);
