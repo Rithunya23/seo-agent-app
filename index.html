@@ -491,13 +491,13 @@
             <div class="profile-avatar" id="userAvatar">U</div>
             <div class="profile-info" style="flex:1;min-width:0">
                 <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="userName">User</div>
-                <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="userEmail">user@zeb.co</div>
+                <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="userEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f98c8a9c8bb9839c9bd79a96">[email&#160;protected]</a></div>
             </div>
             <span class="profile-arrow" style="font-size:12px;color:var(--muted)">&#9662;</span>
             <div class="profile-dropdown" id="profileDropdown">
                 <div class="profile-dropdown-item" onclick="showScreen('profile');event.stopPropagation()">&#128100; My Profile</div>
                 <div class="profile-divider"></div>
-                <div class="profile-dropdown-item" onclick="event.stopPropagation()">&#128231; <span id="profileEmail">user@zeb.co</span></div>
+                <div class="profile-dropdown-item" onclick="event.stopPropagation()">&#128231; <span id="profileEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d1a4a2b4a391abb4b3ffb2be">[email&#160;protected]</a></span></div>
                 <div class="profile-dropdown-item" onclick="event.stopPropagation()">&#128241; Contact Info</div>
                 <div class="profile-divider"></div>
                 <div class="profile-dropdown-item" onclick="showResetPassword();event.stopPropagation()">&#128273; Reset Password</div>
@@ -509,7 +509,7 @@
     <div class="main" id="mainContent"></div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ═══════════════════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -613,7 +613,7 @@ function renderProfile() {
 // WORKFLOW STEP CONTROL
 // ═══════════════════════════════════════════════════════════════════════════
 function setWorkflowStep(step) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
         const c = document.getElementById("wf" + i);
         const line = document.getElementById("wfl" + i);
         const labels = document.querySelectorAll(".workflow-label");
@@ -664,8 +664,6 @@ function renderDashboard() {
                     <div class="workflow-step"><div class="workflow-circle dim" id="wf2">📊</div><div class="workflow-label">Analyzer</div></div>
                     <div class="workflow-line" id="wfl2"></div>
                     <div class="workflow-step"><div class="workflow-circle dim" id="wf3">🔧</div><div class="workflow-label">Fixer</div></div>
-                    <div class="workflow-line" id="wfl3"></div>
-                    <div class="workflow-step"><div class="workflow-circle dim" id="wf4">📄</div><div class="workflow-label">Reporter</div></div>
                 </div>
             </div>
 
@@ -737,13 +735,11 @@ async function startCrawl() {
     document.getElementById("mainContent").innerHTML = `
         <div class="fade-up">
             <h2 style="font-size:24px;font-weight:900;margin-bottom:28px;letter-spacing:-0.5px">🤖 SEO Agent Running Autonomously...</h2>
-            <div class="card card-highlight card-glow" style="margin-bottom:20px">
-                <div style="display:flex;justify-content:space-between;margin-bottom:14px">
-                    <span style="color:var(--lime);font-size:13px;font-weight:700" id="crawlPhase">🚀 Starting pipeline for ${url}</span>
-                    <span style="color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace;font-weight:600" id="crawlPct">0%</span>
+            <div class="card card-highlight card-glow neon-border" style="margin-bottom:20px">
+                <div style="text-align:center;margin-bottom:20px">
+                    <div style="font-size:14px;font-weight:800;color:var(--lime);animation:neonPulse 2s ease-in-out infinite" id="crawlPhase">🚀 Starting pipeline for ${url}</div>
                 </div>
-                <div class="progress-bar"><div class="progress-fill" id="crawlProgress" style="width:0%"></div></div>
-                <div class="workflow" style="margin-top:24px">
+                <div class="workflow" style="margin-top:16px">
                     <div class="workflow-step"><div class="workflow-circle active" id="wfc0">🧠</div><div class="workflow-label active">Planner</div></div>
                     <div class="workflow-line" id="wflc0"></div>
                     <div class="workflow-step"><div class="workflow-circle dim" id="wfc1">🔎</div><div class="workflow-label">Auditor</div></div>
@@ -751,15 +747,16 @@ async function startCrawl() {
                     <div class="workflow-step"><div class="workflow-circle dim" id="wfc2">📊</div><div class="workflow-label">Analyzer</div></div>
                     <div class="workflow-line" id="wflc2"></div>
                     <div class="workflow-step"><div class="workflow-circle dim" id="wfc3">🔧</div><div class="workflow-label">Fixer</div></div>
-                    <div class="workflow-line" id="wflc3"></div>
-                    <div class="workflow-step"><div class="workflow-circle dim" id="wfc4">📄</div><div class="workflow-label">Reporter</div></div>
                 </div>
                 <!-- Typing Animation -->
-                <div style="margin-top:16px"><div class="typing-text" id="typingLine" style="min-height:18px">Initializing agents...</div></div>
-                <!-- Confidence Meter -->
-                <div style="margin-top:14px;display:flex;align-items:center;gap:16px">
-                    <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;font-weight:700">Confidence</span>
-                    <div class="health-bar" style="flex:1"><div class="health-track"><div class="health-fill" id="confidenceFill" style="width:0%;background:var(--lime)"></div></div><span style="font-size:13px;font-weight:800;color:var(--lime)" id="confidencePct">0%</span></div>
+                <div style="margin-top:20px"><div class="typing-text" id="typingLine" style="min-height:18px">Initializing agents...</div></div>
+                <!-- Confidence Bar Only -->
+                <div style="margin-top:16px">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                        <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;font-weight:700">Confidence</span>
+                        <span style="font-size:14px;font-weight:800;color:var(--lime);font-family:'JetBrains Mono',monospace" id="confidencePct">0%</span>
+                    </div>
+                    <div class="progress-bar" style="height:8px"><div class="progress-fill" id="confidenceFill" style="width:0%"></div></div>
                 </div>
             </div>
             <div class="card" style="max-height:350px;overflow-y:auto" id="liveLogPanel">
@@ -770,7 +767,7 @@ async function startCrawl() {
     `;
 
     function setCrawlWorkflow(step) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 4; i++) {
             const c = document.getElementById("wfc"+i);
             const line = document.getElementById("wflc"+i);
             const labels = document.querySelectorAll("#mainContent .workflow-label");
@@ -806,60 +803,64 @@ async function startCrawl() {
 
                 if (s === "crawling" || s === "auditing" || s === "fixing" || s === "reviewing") {
                     if (!window._crawlStart) window._crawlStart = Date.now();
+                    if (!window._logPhase) window._logPhase = -1;
                     const elapsed = (Date.now() - window._crawlStart) / 1000;
-                    let pct;
+                    let pct, phase;
 
-                    if (elapsed < 8) {
-                        pct = Math.min(10 + elapsed * 2, 25); conf = Math.min(elapsed*3, 20);
-                        setCrawlWorkflow(0);
+                    if (elapsed < 5) {
+                        pct = Math.min(10 + elapsed * 4, 30); conf = Math.min(elapsed*6, 28);
+                        phase = 0; setCrawlWorkflow(0);
                         document.getElementById("crawlPhase").textContent = "🧠 Planner analyzing site structure...";
-                        if (elapsed > 4) addLiveLog("Planner", "Site scope determined", "info");
-                    } else if (elapsed < 25) {
-                        pct = Math.min(25 + (elapsed - 8) * 1.8, 52); conf = Math.min(20+(elapsed-8)*2, 50);
-                        setCrawlWorkflow(1);
+                        if (window._logPhase < 0) { window._logPhase = 0; addLiveLog("Planner", "Analyzing URL and site structure...", "info"); }
+                    } else if (elapsed < 20) {
+                        pct = Math.min(30 + (elapsed - 5) * 2.5, 65); conf = Math.min(28+(elapsed-5)*2.5, 60);
+                        phase = 1; setCrawlWorkflow(1);
                         document.getElementById("crawlPhase").textContent = "🔎 Auditor crawling " + (proj.total_pages || "") + " pages...";
-                    } else if (elapsed < 50) {
-                        pct = Math.min(52 + (elapsed - 25) * 0.8, 72); conf = Math.min(50+(elapsed-25)*1, 70);
-                        setCrawlWorkflow(2);
+                        if (window._logPhase < 1) { window._logPhase = 1; addLiveLog("Planner", "✅ Site scope determined", "success"); addLiveLog("Auditor", "Starting page discovery...", "info"); }
+                        if (window._logPhase === 1 && proj.total_pages > 0 && !window._logPages) { window._logPages = true; addLiveLog("Auditor", "Found " + proj.total_pages + " pages to analyze", "info"); }
+                    } else if (elapsed < 40) {
+                        pct = Math.min(65 + (elapsed - 20) * 0.8, 80); conf = Math.min(60+(elapsed-20)*0.8, 75);
+                        phase = 2; setCrawlWorkflow(2);
                         document.getElementById("crawlPhase").textContent = "📊 Analyzer checking SEO + grammar...";
-                    } else if (elapsed < 90) {
-                        pct = Math.min(72 + (elapsed - 50) * 0.4, 88); conf = Math.min(70+(elapsed-50)*0.4, 80);
-                        setCrawlWorkflow(3);
-                        document.getElementById("crawlPhase").textContent = "🔧 Fixer applying fixes to " + (proj.total_issues || 0) + " issues...";
+                        if (window._logPhase < 2) { window._logPhase = 2; addLiveLog("Auditor", "✅ Crawling complete", "success"); addLiveLog("Analyzer", "Checking meta tags, headings, schema...", "info"); }
+                        if (window._logPhase === 2 && elapsed > 28 && !window._logGrammar) { window._logGrammar = true; addLiveLog("Analyzer", "Running grammar check on all pages...", "info"); }
+                        if (window._logPhase === 2 && elapsed > 35 && !window._logScore) { window._logScore = true; addLiveLog("Analyzer", "Calculating SEO scores...", "info"); }
                     } else {
-                        pct = Math.min(88 + (elapsed - 90) * 0.15, 95); conf = Math.min(80+(elapsed-90)*0.2, 90);
-                        setCrawlWorkflow(4);
-                        document.getElementById("crawlPhase").textContent = "📄 Reporter generating report...";
+                        conf = 97 - (22 / (1 + (elapsed - 40) * 0.03));
+                        pct = conf;
+                        phase = 3; setCrawlWorkflow(3);
+                        document.getElementById("crawlPhase").textContent = "🔧 Fixer auto-fixing issues...";
+                        if (window._logPhase < 3) { window._logPhase = 3; addLiveLog("Analyzer", "✅ Analysis complete", "success"); addLiveLog("Fixer", "Generating AI-powered fixes with GPT-4o-mini...", "info"); }
+                        if (window._logPhase === 3 && elapsed > 50 && !window._logMeta) { window._logMeta = true; addLiveLog("Fixer", "Rewriting meta titles and descriptions...", "info"); }
+                        if (window._logPhase === 3 && elapsed > 60 && !window._logSchema) { window._logSchema = true; addLiveLog("Fixer", "Adding schema markup and canonical URLs...", "info"); }
+                        if (window._logPhase === 3 && elapsed > 75 && !window._logEsc) { window._logEsc = true; addLiveLog("Fixer", "Escalating complex issues for human review...", "info"); }
                     }
 
                     pct = Math.round(pct); conf = Math.round(conf);
-                    document.getElementById("crawlProgress").style.width = pct + "%";
-                    document.getElementById("crawlPct").textContent = pct + "%";
                     document.getElementById("confidenceFill").style.width = conf + "%";
                     document.getElementById("confidencePct").textContent = conf + "%";
                 } else if (s === "complete") {
                     clearInterval(interval);
                     clearInterval(typInterval);
                     window._crawlStart = null;
-                    setCrawlWorkflow(5);
-                    document.getElementById("crawlProgress").style.width = "100%";
-                    document.getElementById("crawlPct").textContent = "100%";
-                    document.getElementById("confidenceFill").style.width = "87%";
-                    document.getElementById("confidencePct").textContent = "87%";
+                    window._logPhase = -1; window._logPages = false; window._logGrammar = false; window._logScore = false; window._logMeta = false; window._logSchema = false; window._logEsc = false;
+                    setCrawlWorkflow(4);
+                    document.getElementById("confidenceFill").style.width = "100%";
+                    document.getElementById("confidencePct").textContent = "100%";
                     document.getElementById("crawlPhase").textContent = "✅ Complete! Loading results...";
                     const typ = document.getElementById("typingLine");
                     if (typ) { typ.textContent = "All checks passed. Redirecting..."; typ.style.borderRight = "none"; }
-                    addLiveLog("Reporter", "Pipeline complete!", "success");
-                    try { const fullRes = await api("/api/projects/" + currentProject); projectData = await fullRes.json(); } catch(e) { projectData = proj; }
-                    try { const rr = await api("/api/projects/" + currentProject + "/report"); reportData = await rr.json(); } catch(e) {}
+                    addLiveLog("Fixer", "Pipeline complete!", "success");
+                    // Single fetch after short delay to ensure backend has all data
                     setTimeout(async () => {
-                        try { const f = await api("/api/projects/" + currentProject); projectData = await f.json(); } catch(e) {}
+                        try { const fullRes = await api("/api/projects/" + currentProject); projectData = await fullRes.json(); } catch(e) { projectData = proj; }
+                        try { const rr = await api("/api/projects/" + currentProject + "/report"); reportData = await rr.json(); } catch(e) {}
                         showScreen("audit");
-                    }, 1500);
+                    }, 1000);
                 } else if (s === "error") {
                     clearInterval(interval);
                     document.getElementById("crawlPhase").textContent = "❌ Error occurred";
-                    addLiveLog("Reporter", "Pipeline error", "error");
+                    addLiveLog("Fixer", "Pipeline error", "error");
                 }
             } catch(e) {}
         }, 2000);
